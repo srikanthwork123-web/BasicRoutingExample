@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BasicRoutingExample.Models;//import the namespace of ProductFilter class to use in this controller
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasicRoutingExample.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]")]//every route need to write in [Route("routename")] route attribute. partent Route declared at controller above
     [ApiController]
     public class RealTimeRoutesController : ControllerBase
     {
+
+        #region RouteExample1
         //Parameters we can pass two ways:1.Query string way  2.Route way
         //Query string way(? used in route): http://localhost:5020/api/RealTimeRoutes/getdata?SipId=123&SipName=MySip&SipAmount=1000
         //Route way: http://localhost:5020/api/RealTimeRoutes/getdata/123/MySip/1000
@@ -50,17 +53,97 @@ namespace BasicRoutingExample.Controllers
         //It is used to specify that this action method will handle HTTP GET requests and also to specify the route template for this action method.
         [HttpGet(Name = "GetEmployeesQueryString")]//Httpmethod+Routename we can combine and write like this way.
         //Latest version we can combine the HttpGet and Route attribute in one line and we can give the route name in HttpGet attribute itself.
+        //[FromQuery] means pass the data through query string and in the route with QueryString
         public string GetData([FromQuery] string a, [FromQuery] string b, [FromQuery] string c, [FromQuery] string d, [FromQuery] string e)
         {
             return a + b + c + d + e;
 
         }
-        [HttpGet("Sip-comment/{SiphealthCheckDetailId}")]
+        [HttpGet("comnbineAll")]
+        public async Task<IActionResult> CombineAll([FromQuery] Employee empObj)
+        {
+            var employeeId = empObj.EmployeeId;
+            var employeeName = empObj.EmployeeName;
+            var employeeSalary = empObj.EmployeeSalary;
+            var employeeDepartment = empObj.EmployeeDepartment;
+            var employeeDesignation = empObj.EmployeeDesignation;
+            var employeeAddress = empObj.EmployeeAddress;
+            var FullemployeeDetails = $"EmployeeId: {employeeId}, EmployeeName: {employeeName}, EmployeeSalary: {employeeSalary}, EmployeeDepartment: {employeeDepartment}, EmployeeDesignation: {employeeDesignation}, EmployeeAddress: {employeeAddress}";
+
+            return Ok(FullemployeeDetails);
+        }
+        [HttpPost("InsertData")] //insert data through body we can use [FromBody],[FromBody] attribute to get the data from the body of the request.
+        public async Task<IActionResult> InsertData([FromBody] Employee empObj)
+        {
+            var employeeId = empObj.EmployeeId;
+            var employeeName = empObj.EmployeeName;
+            var employeeSalary = empObj.EmployeeSalary;
+            var employeeDepartment = empObj.EmployeeDepartment;
+            var employeeDesignation = empObj.EmployeeDesignation;
+            var employeeAddress = empObj.EmployeeAddress;
+            var FullemployeeDetails = $"EmployeeId: {employeeId}, EmployeeName: {employeeName}, EmployeeSalary: {employeeSalary}, EmployeeDepartment: {employeeDepartment}, EmployeeDesignation: {employeeDesignation}, EmployeeAddress: {employeeAddress}";
+
+            return Ok(FullemployeeDetails);
+        }
+        [HttpGet("Sip-comment/{SiphealthCheckDetailId}")]//[FromRoute] means pass the data through route and in the route name we are giving the name of route parameter after / and in method parameters we are using [FromRoute] attribute to get the data from the route.
         public async Task<IActionResult> SipComment([FromRoute] long SiphealthCheckDetailId)
         {
             var checkType = SiphealthCheckDetailId;
             return Ok(checkType);
         }
+
+        [HttpGet("Sip-QuestionResponse/healthCheckDetailId/{SiphealthCheckDetailId}/healthCheckType/{SiphealthCheckType}/folderId/{SipfolderId}")]
+        public async Task<IActionResult> SipQuestionResponse([FromRoute] int SiphealthCheckDetailId, [FromRoute] string SiphealthCheckType, string SipfolderId)
+        {//IActionResult is the return type ,it will return diffrent statuscodes.
+            return Ok(SiphealthCheckDetailId + ' ' + SiphealthCheckType + ' ' + SipfolderId);
+        }
+
+        [HttpGet("SipEngagementSelection/healthCheckDetailId/{healthCheckDetailId}/questionId/{questionId}")]//here questionId is parametername ,you must place inside {   curlbrackets},only paramters we need to place in curly bracketes.
+        public async Task<IActionResult> SipGet([FromRoute] int healthCheckDetailId, [FromRoute] int questionId)
+        {
+
+            return Ok(healthCheckDetailId + ' ' + questionId);
+
+        }
+        #endregion
+
+
+        #region FromQuery AttributeUsage
+        //Querystring means route starts with ?(question mark firsttimeonly)
+        // Route: http://localhost:5020/api/RealTimeRoutes/SearchProducts1?name=hyderabad&category=Sample
+        [HttpGet("SearchProducts1")]//=>we called this one as "Httpgetmethod("childroutename")"
+        //in this route we are passing 2 parmeters values by using Query String.
+        public IActionResult SearchProducts1([FromQuery] string name, [FromQuery] string category)
+        {
+            //the below one is the string concadination
+            return Ok($"Searching for {name} in {category} category.");
+        }
+        // Route: http://localhost:5020/api/RealTimeRoutes/SearchProducts2?name=hyderabad
+        [HttpGet("SearchProducts2")]
+        public IActionResult SearchProducts2([FromQuery] string name)
+        {
+            //the below one is the string concadination
+            return Ok($"Searching for {name}.");
+        }
+        //Example: Combining [FromRoute] and [FromQuery]
+        // Route: http://localhost:5020/api/RealTimeRoutes/123?status=successdata
+        [HttpGet("{orderId:int}")]//you can also specify the data type of parameter inside { curly brackets also
+        public IActionResult GetOrderDetails(
+            [FromRoute] int orderId,
+            [FromQuery] string status)
+        {
+            return Ok($"Order ID: {orderId}, Status: {status}");
+        }
+
+        //Complex binding with [FromQuery]
+        // Route: http://localhost:5020/api/RealTimeRoutes/filter?Name=vasu&Category=gold&MinPrice=100&MaxPrice=500
+        [HttpGet("filter")]
+//if you want send more parameters from query string you can create a class and pass the class object with [FromQuery] attribute in method parameters and in the route we are not giving the name of route parameters in the route name after / and in method parameters we are using [FromQuery] attribute to get the data from the query string.
+        public IActionResult FilterProducts([FromQuery] ProductFilter filter)
+        {
+            return Ok($"Filtering {filter.Name} with min price {filter.MinPrice}.");
+        }
+        #endregion
 
     }
 }
